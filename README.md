@@ -1,44 +1,70 @@
-# Agile Work Item Converter
+# Agile Refinery
 
-A Streamlit application that transforms rough work items into structured, actionable agile descriptions using Claude API.
+**Transform rough ideas into polished, actionable agile work items with AI**
 
-## Features
+---
 
-- **Natural Language Input**: Accepts work items in any format - Jira titles, Slack messages, meeting notes, or rough ideas
-- **Structured Output**: Generates complete agile descriptions including:
-  - User story format
-  - Acceptance criteria
-  - Technical notes
-  - Definition of done
-  - Story point estimates
-- **Team Context**: Optional context input for domain-specific terminology
-- **Export**: Download generated descriptions as Markdown
+## What is Agile Refinery?
 
-## Installation
+Agile Refinery is a modern web application that uses Claude AI to transform unstructured work items into professional, actionable agile descriptions. Whether you have a quick Slack message, a rough idea from a meeting, or a vague feature request, Agile Refinery will craft it into a polished work item ready for your sprint.
+
+### What You Get
+
+Every work item is transformed into:
+
+| Section | Description |
+|---------|-------------|
+| **Title** | Concise, action-oriented (max 10 words) |
+| **User Story** | "As a... I want... So that..." format |
+| **Description** | Context, problem, and business value |
+| **Acceptance Criteria** | 3-5 testable, specific criteria |
+| **Technical Notes** | Implementation hints & considerations |
+| **Definition of Done** | Complete checklist for sign-off |
+| **Story Points** | Fibonacci estimate with rationale |
+
+---
+
+## Quick Start
+
+### Deploy to Vercel (Recommended)
+
+1. Fork this repository
+2. Import the project in [Vercel](https://vercel.com/new)
+3. Add your `ANTHROPIC_API_KEY` environment variable
+4. Deploy and start refining!
+
+### Local Development
 
 ```bash
-# Clone or download the files
-cd agile_converter
-
-# Create virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Clone the repository
+git clone <repository-url>
+cd agile-items
 
 # Install dependencies
-pip install -r requirements.txt
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local and add your ANTHROPIC_API_KEY
+
+# Start development server
+npm run dev
 ```
 
-## Usage
+Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
-```bash
-streamlit run app.py
-```
+---
 
-Then:
-1. Enter your Anthropic API key in the sidebar
-2. (Optional) Add team/project context for better results
-3. Paste your work item in the input box
-4. Click "Generate"
+## Tech Stack
+
+- **Framework**: Next.js 14 with App Router
+- **Styling**: Tailwind CSS with custom animations
+- **Animations**: Framer Motion
+- **UI**: Custom glassmorphism design system
+- **AI**: Claude AI (claude-sonnet-4-20250514)
+- **Deployment**: Vercel
+
+---
 
 ## Example
 
@@ -48,97 +74,96 @@ Fix the slow dashboard
 ```
 
 **Output:**
-```markdown
-## Title
-Optimise Dashboard Load Time
 
-## User Story
-As a data analyst, I want the dashboard to load within 3 seconds, 
-so that I can access insights without workflow interruption.
+### Title
+Optimize Dashboard Load Time Performance
 
-## Description
-The main analytics dashboard currently experiences slow load times 
-during peak usage. This impacts user productivity and workflow efficiency.
-Focus on initial page load optimisation.
+### User Story
+As a data analyst, I want the dashboard to load within 3 seconds so that I can quickly access insights without workflow interruption.
 
-## Acceptance Criteria
-- [ ] Dashboard loads in ≤3 seconds under normal conditions
-- [ ] No regression in data accuracy or completeness
-- [ ] Loading state displayed during data fetch
-- [ ] Performance metrics logged to monitoring
+### Description
+The current dashboard experiences significant load time delays, impacting user productivity and satisfaction. This optimization addresses performance bottlenecks to deliver a snappy, responsive experience that keeps users engaged.
 
-## Technical Notes
-- Profile current queries for bottlenecks
-- Consider caching for frequently accessed data
-- May require database index optimisation
+### Acceptance Criteria
+- [ ] Dashboard initial load completes within 3 seconds on standard connections
+- [ ] Loading indicators display for any operation exceeding 500ms
+- [ ] No visible layout shifts during data hydration
+- [ ] Performance metrics logged for monitoring
 
-## Definition of Done
-- Code complete and reviewed
-- Performance tests passing
-- Deployed to staging and validated
+### Technical Notes
+- Profile current render cycle to identify bottlenecks
+- Consider implementing React.memo for expensive components
+- Evaluate data fetching strategy (SSR vs client-side)
+- Implement virtualization for large data lists
 
-## Suggested Story Points
-5 - Requires investigation and optimisation work, but scope is defined.
+### Definition of Done
+- [ ] Code complete and reviewed
+- [ ] Unit tests written and passing
+- [ ] Performance benchmarks documented
+- [ ] Deployed to staging
+- [ ] Product owner sign-off
+
+### Story Points
+**5 points** - Moderate complexity requiring performance profiling and multiple optimization techniques.
+
+---
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `ANTHROPIC_API_KEY` | Your Anthropic API key | Yes |
+
+Get your API key from the [Anthropic Console](https://console.anthropic.com/).
+
+---
+
+## Project Structure
+
+```
+agile-refinery/
+├── app/
+│   ├── api/
+│   │   └── generate/
+│   │       └── route.ts    # Claude AI integration
+│   ├── globals.css         # Tailwind & custom styles
+│   ├── layout.tsx          # Root layout
+│   └── page.tsx            # Main application
+├── src/
+│   └── lib/
+│       └── utils.ts        # Utility functions
+├── public/                 # Static assets
+├── tailwind.config.ts      # Tailwind configuration
+├── next.config.mjs         # Next.js configuration
+├── vercel.json             # Vercel deployment config
+└── package.json
 ```
 
-## Configuration
-
-### Environment Variables (Optional)
-
-You can set the API key as an environment variable instead of entering it in the UI:
-
-```bash
-export ANTHROPIC_API_KEY="your-key-here"
-```
-
-Then modify the app to read from environment:
-
-```python
-import os
-api_key = os.getenv("ANTHROPIC_API_KEY") or st.text_input(...)
-```
-
-## Customisation
-
-### Modify the System Prompt
-
-Edit the `SYSTEM_PROMPT` variable in `app.py` to:
-- Add team-specific templates
-- Include additional sections (e.g., data governance, security considerations)
-- Change the story point scale
-- Add healthcare-specific fields
-
-### Add Team Presets
-
-You could extend the sidebar to include preset contexts:
-
-```python
-presets = {
-    "BHF DSC": "Healthcare data science team working with NHS datasets...",
-    "Frontend": "React/TypeScript team following atomic design...",
-}
-```
+---
 
 ## Deployment
 
-### Streamlit Community Cloud
+### Vercel (Recommended)
 
-1. Push to GitHub
-2. Connect to [share.streamlit.io](https://share.streamlit.io)
-3. Add `ANTHROPIC_API_KEY` to secrets
+1. Push your code to GitHub
+2. Import the project in Vercel
+3. Add `ANTHROPIC_API_KEY` to environment variables
+4. Deploy!
 
-### Docker
+### Other Platforms
 
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY app.py .
-EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]
-```
+The app is a standard Next.js application and can be deployed to any platform that supports Node.js:
+
+- **Railway**: `railway up`
+- **Render**: Connect your Git repository
+- **Docker**: Use `next build && next start`
+
+---
 
 ## License
 
-MIT
+MIT License - feel free to use this project for personal or commercial purposes.
+
+---
+
+**Built with Next.js and Claude AI**
