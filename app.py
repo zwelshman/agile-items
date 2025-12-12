@@ -1,5 +1,6 @@
 """
 Agile Work Item Converter
+BHF Data Science Centre
 Transforms rough work items into structured agile descriptions using Claude API.
 """
 
@@ -9,110 +10,331 @@ from typing import Optional
 
 # Page configuration
 st.set_page_config(
-    page_title="Agile Work Item Converter",
+    page_title="Agile Work Item Converter | BHF DSC",
     page_icon="📋",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for a clean, professional look
+# BHF DSC Custom CSS
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-    
-    /* Main app styling */
-    .stApp {
-        font-family: 'Plus Jakarta Sans', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --bhf-red: #C8102E;
+    --bhf-red-dark: #A00D24;
+    --bhf-red-light: #E8394F;
+    --color-primary: #C8102E;
+    --color-secondary: #2D3436;
+    --color-bg: #FAFAFA;
+    --color-bg-warm: #FFF9F9;
+    --color-bg-card: #FFFFFF;
+    --color-bg-dark: #1A1A2E;
+    --color-text: #2D3436;
+    --color-text-muted: #636E72;
+    --color-border: #E8E8E8;
+    --font-display: 'Source Serif 4', Georgia, serif;
+    --font-body: 'Source Sans 3', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --shadow-sm: 0 1px 3px rgba(200, 16, 46, 0.06);
+    --shadow-md: 0 4px 12px rgba(200, 16, 46, 0.08);
+    --shadow-red: 0 4px 20px rgba(200, 16, 46, 0.15);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+}
+
+.stApp {
+    background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-warm) 100%);
+}
+
+.main .block-container {
+    max-width: 1200px;
+    padding: 2rem 3rem 4rem;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--font-display) !important;
+    color: var(--color-secondary) !important;
+}
+
+p, li, td, th, label, .stMarkdown {
+    font-family: var(--font-body) !important;
+    color: var(--color-text);
+    line-height: 1.65;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, var(--color-bg-dark) 0%, #2D1F2F 30%, var(--bhf-red-dark) 70%, var(--bhf-red) 100%);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    margin: -1rem -1rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(242, 84, 91, 0.15) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    margin-bottom: 1rem;
+}
+
+.hero-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+
+.hero-subtitle {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+    max-width: 600px;
+}
+
+/* Cards */
+.input-card, .output-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    height: 100%;
+    box-shadow: var(--shadow-sm);
+}
+
+.input-card:hover, .output-card:hover {
+    border-color: rgba(200, 16, 46, 0.3);
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.card-header-icon {
+    margin-right: 0.5rem;
+}
+
+/* Text Areas */
+.stTextArea textarea {
+    font-family: var(--font-mono) !important;
+    font-size: 0.9rem !important;
+    border-radius: var(--radius-sm) !important;
+    border: 2px solid var(--color-border) !important;
+    background: var(--color-bg) !important;
+}
+
+.stTextArea textarea:focus {
+    border-color: var(--bhf-red) !important;
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1) !important;
+}
+
+/* Buttons */
+.stButton > button {
+    font-family: var(--font-body) !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, var(--bhf-red) 0%, var(--bhf-red-dark) 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50px !important;
+    padding: 0.75rem 2rem !important;
+    font-size: 0.95rem !important;
+    transition: all 0.25s ease !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-red) !important;
+}
+
+.stButton > button:active {
+    transform: translateY(0) !important;
+}
+
+/* Download button */
+.stDownloadButton > button {
+    font-family: var(--font-body) !important;
+    font-weight: 500 !important;
+    background: rgba(200, 16, 46, 0.08) !important;
+    color: var(--bhf-red) !important;
+    border: 1px solid rgba(200, 16, 46, 0.2) !important;
+    border-radius: 50px !important;
+    padding: 0.5rem 1.25rem !important;
+    font-size: 0.85rem !important;
+}
+
+.stDownloadButton > button:hover {
+    background: rgba(200, 16, 46, 0.12) !important;
+    border-color: var(--bhf-red) !important;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: var(--color-bg-card);
+    border-right: 1px solid var(--color-border);
+}
+
+section[data-testid="stSidebar"] .stMarkdown h3 {
+    font-family: var(--font-display) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--color-secondary) !important;
+    margin-bottom: 0.75rem;
+}
+
+/* Service intro box */
+.service-intro {
+    background: linear-gradient(135deg, rgba(200, 16, 46, 0.04) 0%, rgba(242, 84, 91, 0.04) 100%);
+    border-left: 3px solid var(--bhf-red);
+    padding: 1rem 1.25rem;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    margin-bottom: 1rem;
+}
+
+.service-intro p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* Output placeholder */
+.output-placeholder {
+    background: var(--color-bg);
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 3rem;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+.output-placeholder-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.output-placeholder-text {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.output-placeholder-hint {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    opacity: 0.7;
+}
+
+/* Example chips */
+.example-chip {
+    display: inline-block;
+    background: rgba(200, 16, 46, 0.06);
+    color: var(--bhf-red);
+    border: 1px solid rgba(200, 16, 46, 0.15);
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.example-chip:hover {
+    background: rgba(200, 16, 46, 0.12);
+    border-color: var(--bhf-red);
+}
+
+/* Expander styling */
+.streamlit-expanderHeader {
+    font-family: var(--font-body) !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    color: var(--color-secondary) !important;
+    background: rgba(200, 16, 46, 0.03) !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+/* Spinner */
+.stSpinner > div {
+    border-top-color: var(--bhf-red) !important;
+}
+
+/* Footer */
+.footer-minimal {
+    text-align: center;
+    padding: 2rem 0 1rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.footer-minimal p {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.footer-minimal a {
+    color: var(--bhf-red);
+    text-decoration: none;
+}
+
+.footer-minimal a:hover {
+    text-decoration: underline;
+}
+
+/* Hide Streamlit branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 1.5rem;
     }
-    
-    /* Header styling */
-    h1 {
-        font-weight: 700 !important;
-        letter-spacing: -0.02em !important;
+    .hero-title {
+        font-size: 1.75rem;
     }
-    
-    h2, h3 {
-        font-weight: 600 !important;
-        color: #1a1a2e !important;
+    .main .block-container {
+        padding: 1rem 1.5rem 2rem;
     }
-    
-    /* Input area styling */
-    .stTextArea textarea {
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 14px !important;
-        border-radius: 8px !important;
-        border: 2px solid #e0e0e0 !important;
-    }
-    
-    .stTextArea textarea:focus {
-        border-color: #4361ee !important;
-        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15) !important;
-    }
-    
-    /* Button styling */
-    .stButton > button {
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-weight: 600 !important;
-        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 0.75rem 2rem !important;
-        font-size: 1rem !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.35) !important;
-    }
-    
-    /* Output container */
-    .output-container {
-        background: #fafafa;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #e8e8e8;
-    }
-    
-    /* Sidebar styling */
-    .css-1d391kg {
-        background: #f8f9fa;
-    }
-    
-    /* Metric cards */
-    .metric-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #4361ee;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Code blocks */
-    code {
-        font-family: 'JetBrains Mono', monospace !important;
-    }
-    
-    /* Status badges */
-    .badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .badge-success {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .badge-info {
-        background: #e7f1ff;
-        color: #004085;
-    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -159,6 +381,14 @@ Guidelines:
 6. Use domain language - Match the team's terminology when context is provided"""
 
 
+def get_api_key() -> Optional[str]:
+    """Get API key from Streamlit secrets."""
+    try:
+        return st.secrets["ANTHROPIC_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        return None
+
+
 def get_agile_description(
     work_item: str,
     context: Optional[str] = None,
@@ -167,7 +397,7 @@ def get_agile_description(
     """Generate an agile description from a work item using Claude API."""
     
     if not api_key:
-        return "❌ Please provide an Anthropic API key in the sidebar."
+        return "❌ API key not configured. Please add ANTHROPIC_API_KEY to your Streamlit secrets."
     
     try:
         client = anthropic.Anthropic(api_key=api_key)
@@ -189,7 +419,7 @@ def get_agile_description(
         return message.content[0].text
         
     except anthropic.AuthenticationError:
-        return "❌ Invalid API key. Please check your Anthropic API key."
+        return "❌ Invalid API key. Please check your Anthropic API key in Streamlit secrets."
     except anthropic.RateLimitError:
         return "❌ Rate limit exceeded. Please wait a moment and try again."
     except Exception as e:
@@ -197,76 +427,82 @@ def get_agile_description(
 
 
 def main():
+    # Get API key from secrets
+    api_key = get_api_key()
+    
     # Sidebar
     with st.sidebar:
-        st.markdown("### ⚙️ Configuration")
+        st.markdown("### 📝 Team Context")
+        st.markdown('<div class="service-intro"><p>Add context about your team, project, or domain to get more relevant descriptions.</p></div>', unsafe_allow_html=True)
         
-        api_key = st.text_input(
-            "Anthropic API Key",
-            type="password",
-            help="Your Anthropic API key for Claude access"
-        )
-        
-        st.markdown("---")
-        
-        st.markdown("### 📝 Team Context (Optional)")
         team_context = st.text_area(
-            "Provide context about your team, project, or domain",
-            placeholder="e.g., We're a healthcare data science team working with NHS datasets. Our stack is Python/PySpark/Databricks. We use 2-week sprints.",
-            height=120,
-            help="This helps generate more relevant and domain-specific descriptions"
+            "Context (optional)",
+            placeholder="e.g., Healthcare data science team at BHF DSC. Stack: Python/PySpark/Databricks. 2-week sprints. Working with NHS datasets and phenotype definitions.",
+            height=140,
+            label_visibility="collapsed"
         )
         
         st.markdown("---")
         
-        st.markdown("### 📖 Quick Guide")
+        st.markdown("### 💡 Quick Examples")
         st.markdown("""
-        **Input Examples:**
+        Click to try:
         - "Fix the slow dashboard"
-        - "Add export to CSV"
-        - "Users can't login with SSO"
+        - "Add phenotype search"
+        - "Export to CSV not working"
         - "Need better error messages"
-        
-        **Output Includes:**
-        - User story format
-        - Acceptance criteria
-        - Technical notes
-        - Story point estimate
         """)
         
         st.markdown("---")
-        st.caption("Built with Claude API & Streamlit")
+        
+        # API status indicator
+        if api_key:
+            st.success("✓ API Connected", icon="🔗")
+        else:
+            st.warning("API key not found in secrets", icon="⚠️")
+        
+        st.markdown("---")
+        st.caption("BHF Data Science Centre")
     
-    # Main content
-    st.markdown("# 📋 Agile Work Item Converter")
-    st.markdown("Transform rough work items into structured, actionable agile descriptions.")
+    # Hero Section
+    st.markdown("""
+    <div class="hero-section">
+        <div class="hero-content">
+            <span class="hero-badge">🏥 BHF Data Science Centre</span>
+            <h1 class="hero-title">Agile Work Item Converter</h1>
+            <p class="hero-subtitle">Transform rough ideas, Jira titles, Slack messages, or meeting notes into structured, actionable agile descriptions with user stories, acceptance criteria, and story point estimates.</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Input section
-    col1, col2 = st.columns([1, 1])
+    # Main content columns
+    col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
-        st.markdown("### Input")
+        st.markdown('<div class="card-header"><span class="card-header-icon">📥</span>Input</div>', unsafe_allow_html=True)
+        
         work_item = st.text_area(
-            "Enter your work item",
-            placeholder="Paste a rough work item, Jira title, Slack message, or meeting note...\n\nExamples:\n- 'Fix the slow dashboard'\n- 'Add phenotype search to the toolkit'\n- 'Users complaining about timeout errors'",
-            height=250,
+            "Work item input",
+            placeholder="Paste a rough work item here...\n\nExamples:\n• 'Fix the slow phenotype search'\n• 'Add ICD-10 validation to the toolkit'\n• 'Users getting timeout errors on large queries'\n• 'Need to support SNOMED CT codes'",
+            height=280,
             label_visibility="collapsed"
         )
         
         # Action buttons
-        btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 2])
+        btn_col1, btn_col2 = st.columns([1, 1])
         
         with btn_col1:
-            generate_btn = st.button("🚀 Generate", use_container_width=True)
+            generate_btn = st.button("🚀 Generate Description", use_container_width=True)
         
         with btn_col2:
             if st.button("🗑️ Clear", use_container_width=True):
+                if 'last_output' in st.session_state:
+                    del st.session_state['last_output']
                 st.rerun()
     
     with col2:
-        st.markdown("### Output")
+        st.markdown('<div class="card-header"><span class="card-header-icon">📤</span>Output</div>', unsafe_allow_html=True)
         
-        # Output container
         output_placeholder = st.empty()
         
         if generate_btn and work_item:
@@ -276,15 +512,12 @@ def main():
                     context=team_context if team_context else None,
                     api_key=api_key
                 )
-                
-                # Store in session state
                 st.session_state['last_output'] = result
         
         # Display output
         if 'last_output' in st.session_state:
             output_placeholder.markdown(st.session_state['last_output'])
             
-            # Copy button (download as markdown)
             st.download_button(
                 label="📥 Download as Markdown",
                 data=st.session_state['last_output'],
@@ -292,50 +525,45 @@ def main():
                 mime="text/markdown"
             )
         else:
-            output_placeholder.markdown(
-                """<div style="
-                    background: #f8f9fa; 
-                    border: 2px dashed #dee2e6; 
-                    border-radius: 12px; 
-                    padding: 3rem; 
-                    text-align: center;
-                    color: #6c757d;
-                    height: 200px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-direction: column;
-                ">
-                    <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Your agile description will appear here</p>
-                    <p style="font-size: 0.9rem;">Enter a work item and click Generate</p>
-                </div>""",
-                unsafe_allow_html=True
-            )
+            output_placeholder.markdown("""
+            <div class="output-placeholder">
+                <div class="output-placeholder-icon">📋</div>
+                <p class="output-placeholder-text">Your agile description will appear here</p>
+                <p class="output-placeholder-hint">Enter a work item and click Generate</p>
+            </div>
+            """, unsafe_allow_html=True)
     
-    # Example section
+    # Example transformations
     st.markdown("---")
     
-    with st.expander("💡 See example transformations"):
-        example_col1, example_col2 = st.columns(2)
+    with st.expander("📖 See example transformations"):
+        ex_col1, ex_col2 = st.columns(2)
         
-        with example_col1:
+        with ex_col1:
             st.markdown("#### Before")
-            st.code("Fix the slow dashboard", language=None)
-            st.code("Add export feature", language=None)
-            st.code("Login broken for some users", language=None)
+            st.code("Fix the slow phenotype search", language=None)
+            st.code("Add SNOMED CT support", language=None)
+            st.code("Query timeouts for large cohorts", language=None)
         
-        with example_col2:
+        with ex_col2:
             st.markdown("#### After (Title + User Story)")
             st.markdown("""
-            **Optimise Dashboard Load Time**  
-            *As a data analyst, I want the dashboard to load within 3 seconds, so that I can access insights without workflow interruption.*
+            **Optimise Phenotype Search Performance**  
+            *As a researcher, I want the phenotype search to return results within 2 seconds, so that I can efficiently explore available codelists without workflow interruption.*
             
-            **Implement Data Export to CSV**  
-            *As a researcher, I want to export query results to CSV, so that I can analyse data in external tools.*
+            **Implement SNOMED CT Code Support**  
+            *As a data analyst, I want to use SNOMED CT codes in phenotype definitions, so that I can work with primary care data alongside hospital records.*
             
-            **Fix SSO Authentication Failures**  
-            *As a user, I want SSO login to work reliably, so that I can access the system without manual intervention.*
+            **Resolve Cohort Query Timeout Errors**  
+            *As a researcher, I want large cohort queries to complete without timing out, so that I can analyse population-level datasets reliably.*
             """)
+    
+    # Footer
+    st.markdown("""
+    <div class="footer-minimal">
+        <p>Built with Claude API & Streamlit | <a href="https://bhfdatasciencecentre.org" target="_blank">BHF Data Science Centre</a></p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
